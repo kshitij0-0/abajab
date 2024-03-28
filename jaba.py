@@ -1,21 +1,22 @@
 # %%
-#!pip install tensorflow tensorflow-gpu pandas matplotlib sklearn
+#!pip install tensorflow tensorflow-gpu polars matplotlib sklearn
 
 # %%
 import os
-import pandas as pd
+import polars as pl
 import tensorflow as tf
 import numpy as np
+import pandas as pd
+from tensorflow.keras.layers import TextVectorization
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dropout, Bidirectional, Dense, Embedding
+from tensorflow.keras.metrics import Precision, Recall, CategoricalAccuracy
+from matplotlib import pyplot as plt
+import gradio as gr
+import pickle 
 
 # %%
 df=pd.read_csv("C:\\Users\\kshit\\OneDrive\\Desktop\\Machine Learning\\Twitter_Toxicity\\train.csv")
-
-# %%
-df.head()
-
-# %%
-from tensorflow.keras.layers import TextVectorization
-
 
 # %%
 X = df['comment_text']
@@ -46,11 +47,7 @@ dataset = dataset.prefetch(8)     # HELPS BOTTLENECKS
 # %%
 train = dataset.take(int(len(dataset)*.7))
 val = dataset.skip(int(len(dataset)*.7)).take(int(len(dataset)*.2))
-test = dataset.skip(int(len(dataset)*.9)).take(int(len(dataset)*.1))
-
-# %%
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dropout, Bidirectional, Dense, Embedding
+test = dataset.skip(int(len(dataset)*.9)).take(int(len(dataset)*.1)
 
 # %%
 model = Sequential()
@@ -59,7 +56,6 @@ model.add(Bidirectional(LSTM(32, activation='tanh')))
 model.add(Dense(128, activation='relu'))
 model.add(Dense(256, activation='relu'))
 model.add(Dense(128, activation='relu'))
-
 model.add(Dense(6, activation='sigmoid'))
 
 # %%
@@ -70,10 +66,6 @@ model.summary()
 
 # %%
 history = model.fit(train, epochs=10, validation_data=val)
-
-
-# %%
-from matplotlib import pyplot as plt
 
 # %%
 plt.figure(figsize=(8,5))
@@ -92,7 +84,7 @@ res = model.predict(np.expand_dims(input_text,0))
 res
 
 # %%
-df.columns[2:]
+list(df.columns)[2:]
 
 # %%
 batch_X, batch_y = test.as_numpy_iterator().next()
@@ -105,9 +97,6 @@ res.shape
 
 # %% [markdown]
 # # Evaluation
-
-# %%
-from tensorflow.keras.metrics import Precision, Recall, CategoricalAccuracy
 
 # %%
 pre = Precision()
@@ -130,37 +119,7 @@ for batch in test.as_numpy_iterator():
 print(f'Precision: {pre.result().numpy()}, Recall:{re.result().numpy()}, Accuracy:{acc.result().numpy()}')
 
 # %%
-
-
-# %%
 !pip install typing-extensions 3.7.4
-
-# %%
-#!pip install gradio
-
-# %%
-import tensorflow as tf
-import gradio as gr
-import pickle 
-
-# %%
-with open('model.pkl','wb') as f:
-    pickle.dump(clf,f)
-
-# %%
-#model.save('toxicity.h5')
-
-# %%
-#model = tf.keras.models.load_model('toxicity.h5')
-
-# %%
-input_str = vectorizer('hey i freaken hate you!')
-
-# %%
-res = model.predict(np.expand_dims(input_str,0))
-
-# %%
-res
 
 # %%
 def score_comment(comment):
